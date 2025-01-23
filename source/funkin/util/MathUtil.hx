@@ -63,7 +63,7 @@ class MathUtil
   }
 
   /**
-   * A more mathematically correct modulo operation than the built-in `%` operator.
+   * Returns `a mod b`.
    * @param a Dividend.
    * @param b Divisor.
    * @return `a mod b`.
