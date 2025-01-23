@@ -63,9 +63,20 @@ class MathUtil
   }
 
   /**
+   * A more mathematically correct modulo operation than the built-in `%` operator.
+   * @param a Dividend.
+   * @param b Divisor.
+   * @return `a mod b`.
+   */
+  public static function mod(a:Float, b:Float):Float
+  {
+    return a - b * Math.floor(a / b);
+  }
+
+  /**
    * Helper function to get the fractional part of a value.
    * @param x value
-   * @return `x - floor(x)`
+   * @return `x mod 1`.
    */
   public static function fract(x:Float):Float
   {
