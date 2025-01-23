@@ -70,6 +70,7 @@ class MathUtil
    */
   public static function mod(a:Float, b:Float):Float
   {
+    b = Math.abs(b);
     return a - b * Math.floor(a / b);
   }
 
