@@ -156,7 +156,12 @@ class SongSequence
       timers.push(event);
     }
 
-    ArraySort.sort(timers, function(a:SequenceEvent, b:SequenceEvent):Int return Std.int(a.time - b.time));
+    ArraySort.sort(timers, function(a:SequenceEvent, b:SequenceEvent):Int
+    {
+      if (a.time < b.time) return -1;
+      if (a.time > b.time) return 1;
+      return 0;
+    });
 
     running = start;
     update.add(onUpdate);
