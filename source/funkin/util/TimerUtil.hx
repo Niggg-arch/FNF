@@ -1,5 +1,6 @@
 package funkin.util;
 
+import haxe.ds.ArraySort;
 import flixel.util.FlxTimer;
 import funkin.Conductor;
 import funkin.util.tools.FloatTools;
@@ -63,8 +64,8 @@ class Sequence
 {
   /**
    * Create a new timer sequence.
-   * @param events A list of function callbacks along with their corresponding call times, in seconds.
-   * @param mult Optional multiplier for callback times. Great for frame-based or music-based timing.
+   * @param events A list of `SequenceEvent`s.
+   * @param mult Optional multiplier for callback times. Useful for frame-based or music-based timing.
    * @param start Whether or not to immediately start the sequence.
    */
   public function new(events:Array<SequenceEvent>, mult:Float = 1, start:Bool = true)
@@ -87,13 +88,13 @@ class Sequence
   /**
    * The list of uncompleted timers.
    */
-  private final timers:Array<FlxTimer> = [];
+  private final timers:Array<FlxTimer> = new Array<FlxTimer>();
 
   /**
    * Controls whether the timers in this sequence are active or not.
    */
   public var running(get, set):Bool;
-  private var _running:Bool = true;
+  private var _running:Bool = false;
 
   @:noCompletion public function get_running():Bool
   {
@@ -137,14 +138,14 @@ class Sequence
 class SongSequence
 {
   /**
-   * Signal dispatched by Conductor.instance.update.
+   * Signal dispatched by `Conductor.instance.update`.
    */
   public static final update(default, null):FlxSignal = new FlxSignal();
 
   /**
-   * Create a new timer sequence (follows Conductor).
-   * @param events A list of function callbacks along with their corresponding call times, in seconds.
-   * @param mult Optional multiplier for callback times. Great for frame-based or music-based timing.
+   * Create a new timer sequence that follows `Conductor.instance.songPosition`.
+   * @param events A list of `SequenceEvent`s.
+   * @param mult Optional multiplier for callback times. Useful for frame-based or music-based timing.
    * @param start Whether or not to immediately start the sequence.
    */
   public function new(events:Array<SequenceEvent>, mult:Float = 1, start:Bool = true)
@@ -155,7 +156,8 @@ class SongSequence
       timers.push(event);
     }
 
-    startTime = Conductor.instance.songPosition;
+    ArraySort.sort(timers, function(a:SequenceEvent, b:SequenceEvent):Int return Std.int(a.time - b.time));
+
     running = start;
     update.add(onUpdate);
   }
@@ -163,12 +165,12 @@ class SongSequence
   /**
    * Keeps track of the time this sequence started, or the relative time if it was previously stopped.
    */
-  private var startTime:Float;
+  private var startTime:Float = 0;
 
   /**
    * The list of uncompleted timers.
    */
-  private final timers:Array<SequenceEvent> = [];
+  private final timers:Array<SequenceEvent> = new Array<SequenceEvent>();
 
   /**
    * Update function invoked by the update signal.
@@ -177,15 +179,9 @@ class SongSequence
   {
     if (!running) return;
 
-    var len:Int = timers.length;
-    for (i in 0...len)
+    while (timers.length > 0 && timers[0].time + startTime <= Conductor.instance.songPosition)
     {
-      var timer:SequenceEvent = timers[len - 1 - i];
-      if (timer.time + startTime > Conductor.instance.songPosition)
-      {
-        timer.callback();
-        timers.remove(timer);
-      }
+      timers.shift().callback();
     }
 
     if (completed) destroy();
@@ -195,7 +191,7 @@ class SongSequence
    * Controls whether the timers in this sequence are active or not.
    */
   public var running(get, set):Bool;
-  private var _running:Bool = true;
+  private var _running:Bool = false;
 
   @:noCompletion public function get_running():Bool
   {
