@@ -1,6 +1,7 @@
 package funkin.audio.visualize.dsp;
 
 import funkin.audio.FunkinSound;
+import funkin.vis._internal.html5.AnalyzerNode;
 import funkin.audio.visualize.audioclip.frontends.FlxAudioClip;
 import funkin.vis.dsp.SpectralAnalyzer;
 import flixel.sound.FlxSound;
@@ -72,6 +73,9 @@ class FlxSoundAnalyzer extends SpectralAnalyzer
     this.audioSource = sndValue._channel.__audioSource;
     @:privateAccess
     this.audioClip = new FlxAudioClip(sndValue);
+    #if web
+    htmlAnalyzer = new AnalyzerNode(this.audioClip);
+    #end
 
     calcBars(barCount, peakHold);
     resizeBlackmanWindow(fftN);
