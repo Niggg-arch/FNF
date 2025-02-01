@@ -34,6 +34,7 @@ import funkin.save.Save.SaveScoreData;
 import funkin.graphics.shaders.LeftMaskShader;
 import funkin.play.components.TallyCounter;
 import funkin.play.components.ClearPercentCounter;
+import funkin.ui.debug.charting.ChartEditorState;
 
 /**
  * The state for the results screen after a song or week is finished.
@@ -80,6 +81,13 @@ class ResultState extends MusicBeatSubState
   final cameraBG:FunkinCamera;
   final cameraScroll:FunkinCamera;
   final cameraEverything:FunkinCamera;
+
+  public var isChartingMode(get, never):Bool;
+
+  function get_isChartingMode():Bool
+  {
+    return PlayState.instance.isChartingMode;
+  }
 
   public function new(params:ResultsStateParams)
   {
@@ -730,19 +738,22 @@ class ResultState extends MusicBeatSubState
 
     if (controls.PAUSE)
     {
-      if (introMusicAudio != null) {
+      if (introMusicAudio != null)
+      {
         @:nullSafety(Off)
         introMusicAudio.onComplete = null;
 
-        FlxTween.tween(introMusicAudio, {volume: 0}, 0.8, {
-          onComplete: _ -> {
-            if (introMusicAudio != null) {
-              introMusicAudio.stop();
-              introMusicAudio.destroy();
-              introMusicAudio = null;
+        FlxTween.tween(introMusicAudio, {volume: 0}, 0.8,
+          {
+            onComplete: _ -> {
+              if (introMusicAudio != null)
+              {
+                introMusicAudio.stop();
+                introMusicAudio.destroy();
+                introMusicAudio = null;
+              }
             }
-          }
-        });
+          });
         FlxTween.tween(introMusicAudio, {pitch: 3}, 0.1,
           {
             onComplete: _ -> {
@@ -752,12 +763,13 @@ class ResultState extends MusicBeatSubState
       }
       else if (FlxG.sound.music != null)
       {
-        FlxTween.tween(FlxG.sound.music, {volume: 0}, 0.8, {
-          onComplete: _ -> {
-            FlxG.sound.music.stop();
-            FlxG.sound.music.destroy();
-          }
-        });
+        FlxTween.tween(FlxG.sound.music, {volume: 0}, 0.8,
+          {
+            onComplete: _ -> {
+              FlxG.sound.music.stop();
+              FlxG.sound.music.destroy();
+            }
+          });
         FlxTween.tween(FlxG.sound.music, {pitch: 3}, 0.1,
           {
             onComplete: _ -> {
@@ -803,6 +815,12 @@ class ResultState extends MusicBeatSubState
           trace('THE RANK IS Higher.....');
 
           shouldTween = true;
+          if (isChartingMode)
+          {
+            PlayState.instance.close();
+            this.close();
+            break; // Don't do this garbage code at home, kids - Lasercar
+          }
           targetState = FreeplayState.build(
             {
               {
@@ -820,6 +838,12 @@ class ResultState extends MusicBeatSubState
         }
         else
         {
+          if (isChartingMode)
+          {
+            PlayState.instance.close();
+            this.close();
+            break;
+          }
           shouldTween = false;
           shouldUseSubstate = true;
           targetState = new funkin.ui.transition.StickerSubState(null, (sticker) -> FreeplayState.build(null, sticker));
