@@ -35,8 +35,8 @@ class IntervalShake implements IFlxDestroyable
    * @param   Object               The object to shake.
    * @param   Duration             How long to shake for (in seconds). `0` means "forever".
    * @param   Interval             In what interval to update the shake position. Set to `FlxG.elapsed` if `<= 0`!
-   * @param   StartIntensity       The starting intensity of the shake from 0 to 1.
-   * @param   EndIntensity         The ending intensity of the shake from 0 to 1.
+   * @param   StartIntensity       The starting intensity of the shake.
+   * @param   EndIntensity         The ending intensity of the shake.
    * @param   Scale                The scale of the shake on the x and y axes. Defaults to (1, 1).
    * @param   Ease                 Control the easing of the intensity over the shake.
    * @param   CompletionCallback   Callback on shake completion
@@ -104,12 +104,12 @@ class IntervalShake implements IFlxDestroyable
   public var timer(default, null):FlxTimer;
 
   /**
-   * The starting intensity of the shake from 0 to 1.
+   * The starting intensity of the shake.
    */
   public var startIntensity(default, null):Float;
 
   /**
-   * The ending intensity of the shake from 0 to 1.
+   * The ending intensity of the shake.
    */
   public var endIntensity(default, null):Float;
 
@@ -170,8 +170,8 @@ class IntervalShake implements IFlxDestroyable
     duration = Duration;
     interval = Interval;
     completionCallback = CompletionCallback;
-    startIntensity = FlxMath.bound(StartIntensity, 0, 1);
-    endIntensity = FlxMath.bound(EndIntensity, 0, 1);
+    startIntensity = StartIntensity;
+    endIntensity = EndIntensity;
     initialOffset = new FlxPoint(Object.x, Object.y);
     scale = Scale ?? new FlxPoint(1, 1);
     ease = Ease;
