@@ -31,12 +31,13 @@ class IntervalShake implements IFlxDestroyable
    * @param   StartIntensity       The starting intensity of the shake.
    * @param   EndIntensity         The ending intensity of the shake.
    * @param   Ease                 Control the easing of the intensity over the shake.
+   * @param   Absolute             If `true`, the object will shake in absolute coordinates, otherwise relative to its size.
    * @param   CompletionCallback   Callback on shake completion
    * @param   ProgressCallback     Callback on each shake interval
    * @return The `IntervalShake` object. `IntervalShake`s are pooled internally, so beware of storing references.
    */
   public static function shake(Object:FlxObject, Duration:Float = 1, Interval:Float = 0.04, StartIntensity:Float = 0, EndIntensity:Float = 0,
-      Ease:EaseFunction, ?CompletionCallback:IntervalShake->Void, ?ProgressCallback:IntervalShake->Void):IntervalShake
+      Ease:EaseFunction, Absolute:Bool = false, ?CompletionCallback:IntervalShake->Void, ?ProgressCallback:IntervalShake->Void):IntervalShake
   {
     if (isShaking(Object))
     {
@@ -57,7 +58,7 @@ class IntervalShake implements IFlxDestroyable
     }
 
     var shake:IntervalShake = _pool.get();
-    shake.start(Object, Duration, Interval, StartIntensity, EndIntensity, Ease, CompletionCallback, ProgressCallback);
+    shake.start(Object, Duration, Interval, StartIntensity, EndIntensity, Ease, Absolute, CompletionCallback, ProgressCallback);
     return _boundObjects[Object] = shake;
   }
 
@@ -141,6 +142,11 @@ class IntervalShake implements IFlxDestroyable
   public var ease(default, null):EaseFunction;
 
   /**
+   * Whether to use absolute coordinates or the object's size for shaking.
+   */
+  public var absolute(default, null):Bool;
+
+  /**
    * Nullifies the references to prepare object for reuse and avoid memory leaks.
    */
   public function destroy():Void
@@ -156,7 +162,7 @@ class IntervalShake implements IFlxDestroyable
    * Starts shaking behavior.
    */
   function start(Object:FlxObject, Duration:Float = 1, Interval:Float = 0.04, StartIntensity:Float = 0, EndIntensity:Float = 0, Ease:EaseFunction,
-      ?CompletionCallback:IntervalShake->Void, ?ProgressCallback:IntervalShake->Void):Void
+      Absolute:Bool = false, ?CompletionCallback:IntervalShake->Void, ?ProgressCallback:IntervalShake->Void):Void
   {
     object = Object;
     duration = Duration;
@@ -166,6 +172,7 @@ class IntervalShake implements IFlxDestroyable
     endIntensity = EndIntensity;
     initialOffset = new FlxPoint(Object.x, Object.y);
     ease = Ease;
+    absolute = Absolute;
     axes = FlxAxes.XY;
     _secondsSinceStart = 0;
     timer = new FlxTimer().start(interval, shakeProgress, Std.int(duration / interval));
@@ -212,8 +219,17 @@ class IntervalShake implements IFlxDestroyable
     var curIntensity:Float = 0;
     curIntensity = FlxMath.lerp(endIntensity, startIntensity, scale);
 
-    if (axes.x) object.x = initialOffset.x + FlxG.random.float((-curIntensity) * object.width, (curIntensity) * object.width);
-    if (axes.y) object.y = initialOffset.y + FlxG.random.float((-curIntensity) * object.width, (curIntensity) * object.width);
+    if (axes.x)
+    {
+      var offset:Float = curIntensity * (absolute ? 1 : object.width);
+      object.x = initialOffset.x + FlxG.random.float(-offset, offset);
+    }
+
+    if (axes.y)
+    {
+      var offset:Float = curIntensity * (absolute ? 1 : object.height);
+      object.y = initialOffset.y + FlxG.random.float(-offset, offset);
+    }
 
     // object.visible = !object.visible;
 
