@@ -62,6 +62,7 @@ class PreferencesMenu extends Page
     }, Preferences.downscroll);
     createPrefItemCheckbox('Flashing Lights', 'Disable to dampen flashing effects', function(value:Bool):Void {
       Preferences.flashingLights = value;
+      funkin.util.plugins.ScreenshotPlugin.instance.updateFlashColor(); // immediately update the flash color of the screenshot plugin
     }, Preferences.flashingLights);
     createPrefItemCheckbox('Camera Zooming on Beat', 'Disable to stop the camera bouncing to the song', function(value:Bool):Void {
       Preferences.zoomCamera = value;
@@ -72,6 +73,19 @@ class PreferencesMenu extends Page
     createPrefItemCheckbox('Auto Pause', 'Automatically pause the game when it loses focus', function(value:Bool):Void {
       Preferences.autoPause = value;
     }, Preferences.autoPause);
+
+    createPrefItemCheckbox('Hide Mouse', 'Enable to hide the mouse when taking a screenshot', function(value:Bool):Void {
+      Preferences.shouldHideMouse = value;
+    }, Preferences.shouldHideMouse);
+    createPrefItemCheckbox('Fancy Preview', 'Enable to show a preview after taking a screenshot', function(value:Bool):Void {
+      Preferences.fancyPreview = value;
+    }, Preferences.fancyPreview);
+    createPrefItemEnum('Save Format', 'Save screenshots to this format', ['PNG' => 'PNG', 'JPEG' => 'JPEG'], function(value:String):Void {
+      Preferences.saveFormat = value;
+    }, Preferences.saveFormat);
+    createPrefItemNumber('JPEG Quality', 'The quality of JPEG screenshots', function(value:Float) {
+      Preferences.jpegQuality = Std.int(value);
+    }, null, Preferences.jpegQuality, 0, 100, 5, 0);
 
     #if web
     createPrefItemCheckbox('Unlocked Framerate', 'Enable to unlock the framerate', function(value:Bool):Void {
