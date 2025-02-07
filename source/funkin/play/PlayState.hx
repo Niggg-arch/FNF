@@ -693,6 +693,7 @@ class PlayState extends MusicBeatSubState
     var pre:Float = (Conductor.instance.beatLengthMs * -5) + startTimestamp;
 
     trace('Attempting to start at ' + pre);
+    trace('startTimestamp ${startTimestamp}');
 
     Conductor.instance.update(pre);
 
@@ -887,7 +888,7 @@ class PlayState extends MusicBeatSubState
       opponentStrumline.clean();
 
       // Delete all notes and reset the arrays.
-      regenNoteData();
+      regenNoteData(startTimestamp);
 
       // Reset camera zooming
       cameraBopIntensity = Constants.DEFAULT_BOP_INTENSITY;
@@ -1930,7 +1931,7 @@ class PlayState extends MusicBeatSubState
       }
     }
 
-    regenNoteData();
+    regenNoteData(startTimestamp); // ok, who forgot to pass the startTimestamp into this?
 
     var event:ScriptEvent = new ScriptEvent(CREATE, false);
     ScriptEventDispatcher.callEvent(currentSong, event);
@@ -1948,6 +1949,8 @@ class PlayState extends MusicBeatSubState
 
     var event:SongLoadScriptEvent = new SongLoadScriptEvent(currentChart.song.id, currentChart.difficulty, currentChart.notes.copy(), currentChart.getEvents());
 
+    var removedNotes:Int = 0;
+
     dispatchEvent(event);
 
     var builtNoteData = event.notes;
@@ -1963,8 +1966,26 @@ class PlayState extends MusicBeatSubState
     for (songNote in builtNoteData)
     {
       var strumTime:Float = songNote.time;
-      if (strumTime < startTime) continue; // Skip notes that are before the start time.
+      if (strumTime < startTime)
+      {
+        if (isPlaytestResults) // only do the following if we're playtesting with the results screen
+        {
+          var noteData:Int = songNote.getDirection();
+          var playerNote:Bool = true;
 
+          if (noteData > 3) playerNote = false;
+
+          switch (songNote.getStrumlineIndex())
+          {
+            case 0:
+              // Don't add the player note to total, to make the clear percent be of only the following notes
+              removedNotes++;
+            case 1:
+              // Nothing!
+          }
+        }
+        continue; // Skip notes that are before the start time.
+      }
       var noteData:Int = songNote.getDirection();
       var playerNote:Bool = true;
 
@@ -1979,6 +2000,11 @@ class PlayState extends MusicBeatSubState
         case 1:
           opponentNoteData.push(songNote);
       }
+    }
+    if (isPlaytestResults)
+    {
+      trace('playtesting results! Removed ${removedNotes} notes from total');
+      trace('Total notes: ${Highscore.tallies.totalNotes}');
     }
 
     playerStrumline.applyNoteData(playerNoteData);
@@ -3105,8 +3131,8 @@ class PlayState extends MusicBeatSubState
       {
         if (isPlaytestResults)
         {
-          var tallies:Tallies = PlayStatePlaylist.isStoryMode ? Highscore.talliesLevel : Highscore.tallies;
-          var clearPercentFloat = tallies.totalNotes == 0 ? 0.0 : (tallies.sick + tallies.good) / tallies.totalNotes * 100;
+          var talliesToUse:Tallies = PlayStatePlaylist.isStoryMode ? Highscore.talliesLevel : Highscore.tallies;
+          var clearPercentFloat = talliesToUse.totalNotes == 0 ? 0.0 : (talliesToUse.sick + talliesToUse.good) / talliesToUse.totalNotes * 100;
           /*
               Only move to the score screen if more than 30% of the song was successfully hit.
               While that might sound like a low clear percent, consider the fact that some songs are hard,
