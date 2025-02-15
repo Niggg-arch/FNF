@@ -14,7 +14,7 @@ class ALSoftConfig
   #if desktop
   static function __init__():Void
   {
-    var origin:String = Sys.programPath();
+    var origin:String = #if hl Sys.getCwd() #else Sys.programPath() #end;
 
     var configPath:String = Path.directory(Path.withoutExtension(origin));
     #if windows
