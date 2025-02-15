@@ -4095,7 +4095,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     }
 
     shouldEase = true;
-    if (shouldPause) stopAudioPlayback();
+    if (shouldPause && !audioInstTrack.isPlaying) stopAudioPlayback(); // Only do this once, not every frame
 
     // Resync the conductor and audio tracks.
     if (playheadAmount != 0) this.playheadPositionInPixels += playheadAmount;
